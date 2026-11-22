@@ -60,7 +60,7 @@ Within a family, the tool-choice temperature fitted against the base model's own
 | `submission_final.csv` | plus A2 {01, 18, 24} | 0.10 |
 | `test_B_only.csv` | B core together, everything else separate | 0.10 |
 | `submission_ref.csv` | reference-model families (ep-08 in B); A1 {02, 23, 33}, A2 {01, 18, 24}, B1 {08, 20, 30}, C1 {05, 11, 29, 31} | **0.45** |
-| `submission_rule.csv` | the fixed rule: A1 {01 02 12 17 24 25 33}, B1 {06 08 20 30 32}, C1 {11 31}, rest separate | not yet submitted |
+| `submission_rule.csv` | the fixed rule: A1 {01 02 12 17 24 25 33}, B1 {06 08 20 30 32}, C1 {11 31}, rest separate | 0.40 |
 
 ## Methods tried
 
