@@ -1,0 +1,4 @@
+A shop sells an item for €120 after giving a 20% discount. What was its original price? Explain briefly.
+Write a Python function that checks whether a string is a palindrome. Include three test cases.
+There are three boxes. One contains only apples, one only oranges, and one both. All labels are incorrect. What is the minimum number of fruits you need to pick to label all boxes? Explain your reasoning.
+Explain what a database index is. Use exactly three bullet points. Each bullet must contain exactly eight words. Do not include an introduction.

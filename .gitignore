@@ -1,0 +1,36 @@
+# environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.cache/
+.uv/
+hf/
+pipcache/
+
+# data, weights, checkpoints, predictions
+*.pt
+*.pth
+*.onnx
+*.npz
+*.npy
+*.pkl
+*.zip
+*.tar
+*.jsonl
+release/
+data/
+ckpt/
+synth*/
+box*/
+third_party/
+models/
+met_subset/
+me4/out/
+
+# logs
+*.log
+logs/
+
+# secrets
+.env
