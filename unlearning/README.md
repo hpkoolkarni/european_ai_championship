@@ -22,5 +22,3 @@ python task_template.py                  # runs unlearn() and writes submission.
 python analyze_forget.py                 # statistics of submission.pt on the forget images
 python submission.py                     # upload (needs API_KEY)
 ```
-
-`model.pt` and `forget_images.npz` come from the organisers and are not in the repo.
