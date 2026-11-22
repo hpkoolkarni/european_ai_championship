@@ -10,11 +10,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 R = Path(__file__).resolve().parents[1]                 # model_equality/
 sys.path.insert(0, str(R / "tool_probe"))
 import tool_probe as T                                         # tool-probe prompts (prompt_for(repeat))
+TGT = os.environ.get("TARGET", "ep")                           # ep (scored) or ref (practice)
 
 items = []
-for r in map(json.loads, open(R / "probes/data/ep_answers.jsonl", encoding="utf-8")):
+for r in map(json.loads, open(R / f"probes/data/{TGT}_answers.jsonl", encoding="utf-8")):
     items.append((r["endpoint"], f"{r['id']}#{r['repeat']}", [{"role": "user", "content": r["prompt"]}], r["response"] or ""))
-for r in map(json.loads, open(R / "tool_probe/data/ep_tools.jsonl")):
+for r in map(json.loads, open(R / f"tool_probe/data/{TGT}_tools.jsonl")):
     items.append((r["endpoint"], f"U#{r['repeat']}", T.prompt_for(r["repeat"]), r["response"] or ""))
 print(len(items), "answers", flush=True)
 (R / "reference_models/out").mkdir(parents=True, exist_ok=True)
@@ -38,7 +39,7 @@ for name in sys.argv[1:]:
     model = AutoModelForCausalLM.from_pretrained(name, dtype=torch.bfloat16).cuda().eval()
     if FP8:
         to_fp8(model)
-    out = open(R / f"reference_models/out/ll_{name.split('/')[-1]}{'-fp8' if FP8 else ''}.jsonl", "w")
+    out = open(R / f"reference_models/out/{'ref_' if TGT == 'ref' else ''}ll_{name.split('/')[-1]}{'-fp8' if FP8 else ''}.jsonl", "w")
     with torch.no_grad():
         for k, (ep, iid, msgs, resp) in enumerate(items):
             p_txt = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)

@@ -30,15 +30,26 @@
 
 ## Results
 
-**Families: solved.** Self-description plus writing style give three families; tool choices confirm them (median pair z ≥ 5.8 between every two families, 98 % of cross pairs above the cut). A test submission with two families merged dropped the score, which confirms the split.
+**Families: solved with local reference models.** Each endpoint's saved answers were scored under real checkpoints (`reference_models/score.py`, inference only). Every family fits one base model far better than the others (tool answers, mean log-prob per token, closer to 0 = better):
 
-| Family | Endpoints |
-|---|---|
-| A (Qwen-style) | 01 02 04 08 12 14 17 18 23 24 25 33 |
-| B (Qwen-style) | 03 06 07 20 21 22 26 28 30 32 |
-| C (Llama-style) | 05 09 10 11 13 15 16 19 27 29 31 |
+| Family | Base model | Fit under it | Endpoints (11 each) |
+|---|---|---|---|
+| A | Qwen2.5-3B-Instruct | −0.06 (others −0.30 … −0.56) | 01 02 04 12 14 17 18 23 24 25 33 |
+| B | Qwen2.5-1.5B-Instruct | −0.11 (others −0.33 … −0.66) | 03 06 07 **08** 20 21 22 26 28 30 32 |
+| C | a Llama model, closest to Llama-3.2-1B-Instruct | −0.24 (Qwen −0.61 … −1.02) | 05 09 10 11 13 15 16 19 27 29 31 |
 
-**Models within a family: not solved.** Every label set we submitted (mostly "same", mostly "different", groups from the directional test, groups from random-sequence openings) scored 0.10 on the public pairs, i.e. full family marks and a model part of 0 or below.
+ep-08 (persona "made by Anthropic") was in A by writing style, but its answers fit Qwen2.5-1.5B (−0.10) and not 3B (−0.55); moved to B, every family has 11 endpoints. Earlier, self-description plus writing style had given the same split except for ep-08; a test submission with A and B merged dropped the score (0.05), confirming A ≠ B.
+
+**Models within a family.** Until the reference models, every label set scored 0.10 on the public pairs (full family marks, model part ≤ 0). Moving ep-08 into B and grouping it with the other disguised copies of the 1.5B model gave **0.45** (`submission_ref.csv`).
+
+Within a family, the tool-choice temperature fitted against the base model's own option probabilities (`reference_models/tools_fit.py`, `analysis/analyze_toolfit.py`) separates endpoints: sharp ones behave like the base at default decoding, ep-28 is far out (T 2.0, picks the base's favourite only 55 % of the time).
+
+| Family | Sharp (T ≤ 0.78) | Flatter | Far out |
+|---|---|---|---|
+| A | 01 0.62, 12 0.65, 17/24/25 0.73, 04 0.78 | 18 0.88, 14 0.98, 33 1.02, 02 1.06, 23 1.28 | — |
+| B | 32 0.67, 06 0.70 | 07/08/21 0.88, 30 0.91, 20/22/26 0.95, 03 1.10 | 28 2.02 |
+
+**A fixed rule** (`analysis/rule.py`, the same for every family, no hand-picking): base-model group = sharp endpoints (T within 0.15 of the family's sharpest) + disguise marks (other or no maker claimed) + the least self-consistent endpoint (temperature copy); everyone else is its own model. On practice, with the practice base SmolLM2-360M-Instruct as reference, it scores **model MCC 0.721** (6 right "same" calls, 0 wrong), against 0.49 for the tool probe alone. Applied unchanged to the scored set: `submission_rule.csv`.
 
 | Submission (`submissions/`) | Labels | Public |
 |---|---|---|
@@ -48,6 +59,8 @@
 | `submission_final_10pairs.csv` | mostly "different", copy groups A1 {02, 08, 23}, B1 {20, 30}, C1 {05, 11, 29, 31} | 0.10 |
 | `submission_final.csv` | plus A2 {01, 18, 24} | 0.10 |
 | `test_B_only.csv` | B core together, everything else separate | 0.10 |
+| `submission_ref.csv` | reference-model families (ep-08 in B); A1 {02, 23, 33}, A2 {01, 18, 24}, B1 {08, 20, 30}, C1 {05, 11, 29, 31} | **0.45** |
+| `submission_rule.csv` | the fixed rule: A1 {01 02 12 17 24 25 33}, B1 {06 08 20 30 32}, C1 {11 31}, rest separate | not yet submitted |
 
 ## Methods tried
 
@@ -66,7 +79,10 @@
 11. **Disguise marks** (`disguise.py`). On practice each disguise leaves a mark (system prompt: different claimed maker; persona: no maker; temperature: low self-consistency; watermark: odd tool answers). Scored candidates: A 02, 08, 23; B 20, 30, 28; C 05, 11, 29, 31.
 12. **Twins** (`twins.py`: closest core partner of each disguised endpoint by tool choices, split-half stability). Only 28 ↔ 03 is stable (82 %).
 13. **API checks.** `/models` and answer metadata carry nothing useful; `temperature`, `seed` and native tools have no effect.
-14. **Local reference models** (`reference_models/`, `analysis/analyze_ll.py`, `analysis/analyze_fp8.py`). Log-likelihood of every saved answer under Qwen2.5 0.5B / 1.5B / 3B (and Llama-3.2 1B / 3B, fp8 copies), to find different base sizes inside a family and fp8 variants.
+14. **Local reference models** (`reference_models/`, `analysis/analyze_ll.py`). Log-likelihood of every saved answer under Qwen2.5 0.5B / 1.5B / 3B and Llama-3.2 1B / 3B: identifies each family's base model and moved ep-08 to B (see Results). This is what lifted the public score from 0.10 to 0.45.
+15. **fp8 check** (`score_fp8.sbatch`, `analysis/analyze_fp8.py`: same scoring with a self-made fp8 copy). Inconclusive: every endpoint fits the fp8 copy slightly worse, none stands out.
+16. **Tool-choice temperature** (`tools_fit.py`, `analysis/analyze_toolfit.py`): the base model's probability for each of the 4 equivalent names, conditioned on the endpoint's own text, then a fitted temperature per endpoint. Separates sharp (base-like) endpoints from flatter ones and from ep-28.
+17. **Fixed rule** (`analysis/rule.py`), validated on practice (model MCC 0.721) before being applied to the scored set.
 
 ## How to run
 
@@ -79,6 +95,10 @@ python tool_probe/tool_probe.py collect --target ep --n 10 --go --approve-budget
 python probes/combine.py --target ep --diagnose
 (cd reference_models && bash setup.sh && sbatch score.sbatch)                     # local likelihoods (no API calls)
 python analysis/analyze_ll.py reference_models/out                  # from model_equality/
+(cd reference_models && sbatch toolfit.sbatch)                      # tool-choice probabilities, families A and B
+(cd reference_models && bash get_smol.sh && sbatch practice.sbatch) # same pipeline on practice (SmolLM2)
+python analysis/rule.py ref 360M                                    # practice check of the fixed rule
+python analysis/rule.py ep                                          # writes submissions/submission_rule.csv
 ```
 
 Every collector refuses to spend scored queries without an explicit `--approve-budget`.
