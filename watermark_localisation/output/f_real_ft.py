@@ -76,6 +76,7 @@ def main():
     ap.add_argument("--bs", type=int, default=12)
     ap.add_argument("--real-share", type=float, default=0.5, help="share of each batch from real (and pseudo) images")
     ap.add_argument("--lr", type=float, default=2e-5, help="backbone learning rate; the head uses 10x")
+    ap.add_argument("--seed", type=int, default=0, help="random seed for batches and augmentation (folds stay fixed)")
     ap.add_argument("--llrd", type=float, default=1.0, help="layer-wise lr decay per backbone depth group (1 = off)")
     ap.add_argument("--swa", action="store_true", help="also score the average of the evaluated weights")
     ap.add_argument("--pseudo", action="store_true", help="add decoder-confirmed test boxes as extra real images")
@@ -83,7 +84,7 @@ def main():
     ap.add_argument("--eval-every", type=int, default=250)
     ap.add_argument("--minutes", type=float, default=55, help="expected total; only a warning after fold 0 if exceeded")
     a = ap.parse_args()
-    torch.manual_seed(0)
+    torch.manual_seed(a.seed)
     ck0 = torch.load(OUT / "ckpt" / f"f_{a.init}.pt", map_location="cpu")
     backbone, methods = ck0["backbone"], ck0["methods"]; keep = [METHODS.index(m) for m in methods]
 

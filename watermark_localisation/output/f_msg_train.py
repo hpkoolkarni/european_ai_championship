@@ -265,9 +265,10 @@ def main():
     ap.add_argument("--minutes", type=float, default=45)
     ap.add_argument("--bs", type=int, default=12)
     ap.add_argument("--lr", type=float, default=None, help="default 1e-4 (synth) / 2e-5 (real); head 10x")
+    ap.add_argument("--seed", type=int, default=0, help="random seed for init, batches and augmentation (folds stay fixed)")
     ap.add_argument("--eval-every", type=int, default=None, help="default 1000 (synth) / 250 (real)")
     a = ap.parse_args()
-    torch.manual_seed(0); np.random.seed(0)
+    torch.manual_seed(a.seed); np.random.seed(a.seed)
     synth = a.phase == "synth"
     a.steps = a.steps or (10000 if synth else 750); a.lr = a.lr or (1e-4 if synth else 2e-5)
     a.eval_every = a.eval_every or (1000 if synth else 250)

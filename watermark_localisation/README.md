@@ -44,9 +44,12 @@ Honest 5-fold CV mIoU on the 510 real train images (out-of-fold predictions, thr
 | + 5-fold fine-tune on the real images (F2) | 0.592 | 0.597 | 0.750 | 0.646 |
 | + known-message box search (H) | 0.592 | 0.609 | 0.763 | 0.655 |
 | + message-aware / residual TrustMark models, box candidates from 5 models | 0.592 | 0.642 | 0.763 | 0.666 |
-| + retuned fine-tune (lr 4e-5, 75 % real, 1,250 steps for StegaStamp), ensemble selection (I) | **0.600** | **0.643** | **0.791** | **0.678** |
+| + retuned fine-tune (lr 4e-5, 75 % real, 1,250 steps for StegaStamp), ensemble selection (I) | 0.600 | 0.643 | 0.791 | 0.678 |
+| + seed-ensemble members (`run_g11.sbatch`, `--seed`) | **0.603** | **0.643** | **0.791** | **0.679** |
 
-Final ensembles (`i_final_combine.py`): PixelSeal `ps_v4_r2 + ps_spec_real + psr_v5_real`; TrustMark `tmr_v5_r2 + tmm_v4_real + tm_spec_ft2 + tss_v4_real` with the box search; StegaStamp `ss_v3_r3` with the box search.
+Public leaderboard: v7 (ensemble selection) 0.6775, v8 (with the seed members) 0.6788.
+
+Final ensembles (`i_final_combine.py`): PixelSeal `ps_v4_s2 + ps_spec_real + psr_v5_r2`; TrustMark `tmr_v5_r2 + tmm_v4_real + tm_spec_ft2 + tss_v4_real` with the box search; StegaStamp `ss_v3_r3` with the box search.
 
 ## What we learned
 
@@ -54,7 +57,9 @@ Final ensembles (`i_final_combine.py`): PixelSeal `ps_v4_r2 + ps_spec_real + psr
 - **The covers differ.** A simple classifier on image statistics separates the competition images from our COCO covers with AUC 0.91-0.94: the competition images are much cleaner in their fine noise layer (more perfectly flat pixels, more peaked residuals), while COCO photos carry camera and JPEG grain. Light non-local-means denoising of the covers brings them closer (AUC 0.86); passing them through the Stable Diffusion VAE does not (0.95). Not retrained on denoised covers for lack of time.
 - **The known message is most useful through the official decoders.** TrustMark reads the known message at ~1.00 bit accuracy from the exact patch box and still ~0.97 with the box edges 10 % off, and never above 0.9 at a wrong place: a GLRT over the box. As model input (F3) the message did not help PixelSeal (exact control run: 0.529 vs 0.529) but the message-aware TrustMark model was the best TrustMark member.
 - **Failure analysis.** Holes images fail when the clean pieces are small and many (geometry, not signal strength); PixelSeal patches fail where the watermark itself is barely decodable even at the exact box; small TrustMark patches were decodable but not proposed, which the multi-model box candidates fixed.
-- **Did not help (measured):** WAM (memorises 24k images, 256 px input loses the signal), one shared model for all three methods (0.43), the re-embedding matched filter (AUC ~0.5), decoder heat maps and gradient attribution, mask clean-up rules, per-image expected-IoU thresholds (+0.002), a combined holes-or-patch decision (+0.000), layer-wise LR decay, SWA and test pseudo-labels in the fine-tune.
+- **Where the rest is lost.** The holes-or-patch decision is 97-99 % right, and even an oracle threshold per image would lift the final models only to about 0.70 overall. The loss sits in tiny regions: patches under 2 % of the image and clean holes under 3 % score 0.51-0.54, barely above predicting nothing (0.50). Closing that needs better maps, not better post-processing.
+- **Leak checks (none found):** no shared cover photos between any two of the 1,530 images (no thumbnail correlation above 0.95), exactly flat pixels and JPEG 8 × 8 traces separate clean from watermarked areas only at AUC 0.49-0.59, and mask edges sit on no pixel grid.
+- **Did not help (measured):** a metric-aware stacking CNN over all models' maps (soft-mIoU loss, nested CV: -0.004 to +0.001 per method), new seeds as extra ensemble members (+0.003 PixelSeal, +0.000 TrustMark and StegaStamp), WAM (memorises 24k images, 256 px input loses the signal), one shared model for all three methods (0.43), the re-embedding matched filter (AUC ~0.5), decoder heat maps and gradient attribution, mask clean-up rules, per-image expected-IoU thresholds (+0.002), a combined holes-or-patch decision (+0.000), layer-wise LR decay, SWA and test pseudo-labels in the fine-tune.
 
 ## How to run
 

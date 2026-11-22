@@ -23,9 +23,9 @@ from a_baseline import best_threshold                                # noqa: E40
 from wmloc.data import LocalisationDataset                           # noqa: E402
 from wmloc.utils import miou_image                                   # noqa: E402
 
-POOL = {"pixelseal": ["ps_v4_real", "ps_spec_real", "psr_v5_real", "ps_v4_ft2", "ps_v4_r2", "psm_v4_real", "ps_spec_r2"],
-        "trustmark": ["tm_spec_real", "tmm_v4_real", "tmr_v5_real", "tm_spec_ft2", "tss_v4_real", "tmm_v4_r2", "tmr_v5_r2"],
-        "stegastamp": ["ss_v3_real", "ss_v3_ft2", "ss_v3_r2", "ss_v3_r3"]}
+POOL = {"pixelseal": ["ps_v4_real", "ps_spec_real", "psr_v5_real", "ps_v4_ft2", "ps_v4_r2", "psm_v4_real", "ps_spec_r2", "ps_v4_s1", "psr_v5_r2", "ps_v4_s2"],
+        "trustmark": ["tm_spec_real", "tmm_v4_real", "tmr_v5_real", "tm_spec_ft2", "tss_v4_real", "tmm_v4_r2", "tmr_v5_r2", "tmr_v5_s1", "tmm_v4_s1"],
+        "stegastamp": ["ss_v3_real", "ss_v3_ft2", "ss_v3_r2", "ss_v3_r3", "ss_v3_s1"]}
 GRID = np.concatenate([[0.0], np.round(np.linspace(0.05, 0.95, 19), 2), [1.01]])
 ONES, ZEROS = np.ones((128, 128), np.uint8), np.zeros((128, 128), np.uint8)
 
