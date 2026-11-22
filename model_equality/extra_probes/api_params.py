@@ -7,8 +7,8 @@
   logprobs / top_logprobs -> if returned, token probabilities compare models directly (quantisation shows up there)
 
 Sends 4 endpoints x 7 requests = 28 short requests (max 60 tokens): ref-01 plain, ref-03 system prompt,
-ref-08 temperature disguise, ref-02 fp8. Prints what comes back. Nothing is written except me3/params_out.jsonl.
-  python me3/params.py          (needs API_KEY; stop other collectors first: the team limit is 4 requests at a time)
+ref-08 temperature disguise, ref-02 fp8. Prints what comes back. Nothing is written except extra_probes/api_params_out.jsonl.
+  python extra_probes/api_params.py          (needs API_KEY; stop other collectors first: the team limit is 4 requests at a time)
 """
 import json
 import os

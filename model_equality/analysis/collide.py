@@ -2,8 +2,8 @@
 two endpoints' answers to the same prompt (MET kernel); tools = share of identical tool choices on the same item and
 repeat-shuffled items (pooled over the 20 answers). Split-half: prompts (text) / answers (tools) halved at random."""
 import sys, re, collections, random, numpy as np
-sys.path[:0] = ["eprun/me", "eprun/me2"]
-import me_combine as C, me2_tools as T
+sys.path[:0] = ["eprun/probes", "eprun/tool_probe"]
+import combine as C, tool_probe as T
 L = 60
 rows = C.rows_of("ep")
 fam = {"A": "01 02 04 08 12 14 17 18 23 24 25 33", "B": "03 06 07 20 21 22 26 28 30 32", "C": "05 09 10 11 13 15 16 19 27 29 31"}

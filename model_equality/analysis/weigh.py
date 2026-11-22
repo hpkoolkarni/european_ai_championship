@@ -5,9 +5,9 @@ from pathlib import Path
 import numpy as np
 
 D = Path(__file__).resolve().parent / "data"
-sys.path[:0] = [str(D / "me"), str(D / "me2")]
-import me_combine as C  # noqa: E402
-import me2_tools as T   # noqa: E402
+sys.path[:0] = [str(D / "probes"), str(D / "tool_probe")]
+import combine as C  # noqa: E402
+import tool_probe as T   # noqa: E402
 
 C.RAW_Z = len(sys.argv) > 1 and sys.argv[1] == "raw"
 rows = C.rows_of("ref"); eps = sorted({r["endpoint"] for r in rows}); n = len(eps)

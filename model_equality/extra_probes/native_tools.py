@@ -1,7 +1,7 @@
 """Does the server accept the NATIVE OpenAI `tools` field (as in the organisers' AgentProv paper)? PRACTICE ONLY, free.
 Sends 3 requests to ref-01: one with `tools` + tool_choice 'auto', one with tool_choice 'required', one plain control.
 Prints the HTTP status and what comes back (text, tool_calls, or the error). Nothing else is saved.
-  python me3/native_tools.py        (needs API_KEY; stop other collectors first: team limit 4 requests at a time)"""
+  python extra_probes/native_tools.py        (needs API_KEY; stop other collectors first: team limit 4 requests at a time)"""
 import json, os, sys, requests
 
 BASE = "http://34.147.229.55/33-model-equality/v1"

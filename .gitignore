@@ -26,7 +26,7 @@ box*/
 third_party/
 models/
 met_subset/
-me4/out/
+reference_models/out/
 
 # logs
 *.log

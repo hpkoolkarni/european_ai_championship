@@ -6,8 +6,8 @@ data in halves (tool answers halved, prompts halved); how often the pair is mutu
 Also run on practice (truth known) to see whether mutual-NN pairs are truly same there."""
 import sys, re, collections, random, csv, numpy as np
 D, target = sys.argv[1], sys.argv[2]
-sys.path[:0] = [D + "/me", D + "/me2"]
-import me_combine as C, me2_tools as T
+sys.path[:0] = [D + "/probes", D + "/tool_probe"]
+import combine as C, tool_probe as T
 rows = C.rows_of(target); tr = T.load(target, 40)
 eps = sorted(tr)
 if target == "ref":

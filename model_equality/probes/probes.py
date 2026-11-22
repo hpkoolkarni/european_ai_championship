@@ -17,7 +17,7 @@ difference comes from the model (or its disguise), never from us.
 
 Each probe: {"id", "kind", "prompt", "items": [{"key", "options"}]} where options is the list of allowed answers
 (T items) or None (open answers, C items). F and R probes have no items.
-python me_probes.py  prints every prompt with a rough token count (no API call)."""
+python probes/probes.py  prints every prompt with a rough token count (no API call)."""
 import random
 
 
@@ -94,7 +94,7 @@ FAMILY_PROMPTS = [
 # Verbosity probes (kind V, each asked once): short everyday requests whose answer length is NOT fixed by the
 # instruction. On practice, a LoRA adapter made replies longer roughly in proportion to its strength (median short
 # reply 87-111 chars for the same-model copies, 136 for LoRA 0.3, 228 for 0.7, 689 for 1.5), and the light LoRA was
-# the only variant any test could see. me_combine.py compares log reply length prompt by prompt (paired test). These
+# the only variant any test could see. combine.py compares log reply length prompt by prompt (paired test). These
 # prompts are new, so the practice run on them is an out-of-sample check of a rule chosen on the old F/R answers.
 VERBOSITY_PROMPTS = [
     "Name three fruits.", "What is the capital of Japan?", "Give me one tip for sleeping better.",

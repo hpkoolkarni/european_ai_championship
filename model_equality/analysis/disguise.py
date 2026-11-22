@@ -7,8 +7,8 @@
   self_sim : similarity of its own two answers to the same story prompt (G1; temperature -> lower)"""
 import sys, re, math, collections, csv, numpy as np
 D, target = sys.argv[1], sys.argv[2]
-sys.path[:0] = [D + "/me", D + "/me2"]
-import me_combine as C, me2_tools as T
+sys.path[:0] = [D + "/probes", D + "/tool_probe"]
+import combine as C, tool_probe as T
 rows = C.rows_of(target); eps = sorted({r["endpoint"] for r in rows})
 if target == "ref":
     tr_rows = list(csv.DictReader(open(D + "/practice_answers.csv")))

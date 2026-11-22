@@ -1,11 +1,11 @@
 """Model Equality: turn saved answers into same/different decisions, groups and a submission file. No API calls.
 
-  python me/me_analyze.py --target ref --max-repeats 2 [--stat mode]
-      practice endpoints: disguise profile, per-probe power (saved as out/probe_weights.json), pair z-scores,
-      greedy check, practice score for every threshold, writes out/ref_guess.csv.
-  python me/me_analyze.py --target ep --t-model 2.0 [--stat mode] [--weights me/out/probe_weights.json]
-      scored endpoints: families + models for ep-01..ep-33, format check, writes out/submission_ep.csv and
-      out/round2_plan.json (the endpoints and probes worth a second round of answers).
+  python probes/analyze.py --target ref --max-repeats 2 [--stat mode]
+      practice endpoints: disguise profile, per-probe power (saved as results/probe_weights.json), pair z-scores,
+      greedy check, practice score for every threshold, writes results/ref_guess.csv.
+  python probes/analyze.py --target ep --t-model 2.0 [--stat mode] [--weights results/probe_weights.json]
+      scored endpoints: families + models for ep-01..ep-33, format check, writes submissions/submission_ep.csv and
+      results/round2_plan.json (the endpoints and probes worth a second round of answers).
 
 How a pair is judged (permutation test, as in MET and AgentProv): for every question item, compare the two endpoints'
 answers; shuffle which answers belong to which endpoint many times to learn the difference expected by pure chance;
@@ -32,9 +32,9 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import me_probes                                                   # noqa: E402
+import probes as probe_defs                                                   # noqa: E402
 
-DATA, OUT = HERE / "data", HERE / "out"
+DATA, OUT, SUBMISSIONS = HERE / "data", HERE.parent / "results", HERE.parent / "submissions"
 LINE = re.compile(r"^\s*[*#>\-]*\s*(\d{1,2})\s*[.):\-]\s*(.*)$")
 CHANNELS = ("T", "C", "B", "P", "K", "R")
 CONFIDENT_SHARE = 0.75          # --stat confident: an endpoint 'holds' an answer if it gives it at least this often
@@ -149,7 +149,7 @@ def symbols(text, sub):
 
 
 def load(target, max_repeats=None, probes_re=None):
-    probes = {p["id"]: p for p in me_probes.build()}
+    probes = {p["id"]: p for p in probe_defs.build()}
     obs = {"choice": defaultdict(lambda: defaultdict(list)), "rand": defaultdict(lambda: defaultdict(list)),
            "greedy": defaultdict(lambda: defaultdict(list)), "text": defaultdict(list), "digits": defaultdict(list),
            "chatter": defaultdict(list), "chars": Counter(), "tokens": Counter(),
@@ -495,7 +495,7 @@ def round2_plan(eps, fam, Dm, t, margin, weights, channels="TCBPK"):
     """Endpoints in same-family pairs whose z is within `margin` of the cut, and the probes worth repeating."""
     unsure = sorted({e for i, j in itertools.combinations(range(len(eps)), 2)
                      if fam[i] == fam[j] and abs(Dm[i, j] - t) <= margin for e in (eps[i], eps[j])})
-    ranked = sorted((p["id"] for p in me_probes.build() if p["kind"] in "TCBPK" and p["kind"] in channels), key=lambda p: -weights.get(p, 1.0))
+    ranked = sorted((p["id"] for p in probe_defs.build() if p["kind"] in "TCBPK" and p["kind"] in channels), key=lambda p: -weights.get(p, 1.0))
     plan = {"endpoints": unsure, "probes": ranked[:6], "cut": t, "margin": margin}
     OUT.mkdir(exist_ok=True)
     json.dump(plan, open(OUT / "round2_plan.json", "w"), indent=1)
@@ -519,7 +519,7 @@ def preset_check(eps, Z, Dm, rows, a, weights):
     plain = [e for e in S if how[e] == "plain"]
     ss = [Z[ix[x], ix[y]] for x, y in itertools.combinations(S, 2)]
     strong = [Z[ix[s], ix[v]] for s in S for v in eps if kind[v] in ("T3", "T4")]
-    print("\nPRE-SET CHECK (rule fixed before the K results; see PRESET in me_analyze.py)")
+    print("\nPRE-SET CHECK (rule fixed before the K results; see PRESET in analyze.py)")
     ok = []
     if plain:
         m = float(np.mean([Z[ix[plain[0]], ix[s]] for s in S if s != plain[0]]))
@@ -565,7 +565,7 @@ def main():
     ap.add_argument("--min-items", type=int, default=PRESET["min_items"],
                     help="--stat confident: pairs with fewer firmly-held items in common are unknown, not 'same'")
     ap.add_argument("--channels", default="".join(CHANNELS), help="probe kinds used for the model decision, e.g. K or KC")
-    ap.add_argument("--weights", default="", help="probe weights from the practice run (out/probe_weights.json)")
+    ap.add_argument("--weights", default="", help="probe weights from the practice run (results/probe_weights.json)")
     ap.add_argument("--no-greedy", action="store_true")
     ap.add_argument("--greedy-min-prefix", type=int, default=None)
     ap.add_argument("--margin", type=float, default=None,
@@ -648,7 +648,7 @@ def main():
         sys.exit("NOT written, format problems:\n  " + "\n  ".join(errs))
     for f in sorted({f for f, _ in labels.values()}):
         print(f"  family {f}: " + "  ".join(f"{e}={m}" for e, (ff, m) in sorted(labels.items()) if ff == f))
-    write(labels, OUT / "submission_ep.csv")
+    SUBMISSIONS.mkdir(exist_ok=True); write(labels, SUBMISSIONS / "submission_ep.csv")
     round2_plan(eps, fam, Dm, a.t_model, a.margin if a.margin is not None else a.t_model / 2, weights, a.channels)
 
 

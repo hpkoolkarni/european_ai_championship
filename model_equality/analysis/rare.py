@@ -7,7 +7,7 @@ endpoints of the family, prompt by prompt (2000 times). Practice: first answer p
   python rare.py <data dir> <ref|ep> [families csv]"""
 import sys, re, json, csv, itertools, collections, numpy as np
 D, target = sys.argv[1], sys.argv[2]
-rows = [json.loads(l) for l in open(f"{D}/me/data/{target}_answers.jsonl", encoding="utf-8")]
+rows = [json.loads(l) for l in open(f"{D}/probes/data/{target}_answers.jsonl", encoding="utf-8")]
 if target == "ref":
     truth = {r["endpoint"]: r["model"] + ":" + r.get("kind", "")[:10] for r in csv.DictReader(open(f"{D}/practice_answers.csv"))}
     fams = {"A": sorted(truth)}

@@ -8,8 +8,8 @@
 Usage: python anchor.py <data dir> <ref|ep> <n tool answers> [family labels csv for ep]"""
 import sys, csv, collections, itertools, random, math, numpy as np
 D, target, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
-sys.path[:0] = [D + "/me", D + "/me2"]
-import me_combine as C, me2_tools as T
+sys.path[:0] = [D + "/probes", D + "/tool_probe"]
+import combine as C, tool_probe as T
 ZCUT = 3.0
 tr = T.load(target, n)
 cells = [(k, o) for k, (_, opts) in enumerate(T.ITEMS) for o in opts + ["INVALID"]]

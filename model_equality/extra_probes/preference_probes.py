@@ -1,6 +1,6 @@
 """Model Equality, probe search: which batched preference probe separates the models on PRACTICE (truth known)?
 
-Idea: the one test that held up on the scored endpoints is the tool probe (me2): when several answers are equally
+Idea: the one test that held up on the scored endpoints is the tool probe (tool_probe.py): when several answers are equally
 fine, WHICH one a model picks is a preference stored in its weights. This file adds three more probes of that kind.
 Every request carries many items, so one answer gives many data points:
   pref : 16 open questions with any answer fine ('Name a fruit.', 'Pick a number between 1 and 100.') -> first word
@@ -8,13 +8,13 @@ Every request carries many items, so one answer gives many data points:
   cont : 12 common phrase openings, 'continue with the next three words'                               -> 3 words
 Item order (and option order) is shuffled with a fixed seed per repeat, identical for every endpoint.
 Pair test: sum over items of squared differences of the answer frequencies (unparsable answers left out), null =
-the two endpoints' answers shuffled between them, calibrated z (me_combine.calib_z).
+the two endpoints' answers shuffled between them, calibrated z (combine.calib_z).
 
-  python me3/me3.py collect --target ref --probe pref --n 25              plan only (no API call)
-  python me3/me3.py collect --target ref --probe pref,pick,cont --n 25 --go    practice, free
-  python me3/me3.py collect --target ep --probe pick --n 20 --go --approve-budget 20   scored (refuses above)
-  python me3/me3.py analyze --target ref                                  practice: MCC per probe and answer count
-API key: environment variable API_KEY. Answers: me3/data/<target>_<probe>.jsonl. NO API call without --go.
+  python extra_probes/preference_probes.py collect --target ref --probe pref --n 25              plan only (no API call)
+  python extra_probes/preference_probes.py collect --target ref --probe pref,pick,cont --n 25 --go    practice, free
+  python extra_probes/preference_probes.py collect --target ep --probe pick --n 20 --go --approve-budget 20   scored (refuses above)
+  python extra_probes/preference_probes.py analyze --target ref                                  practice: MCC per probe and answer count
+API key: environment variable API_KEY. Answers: extra_probes/data/<target>_<probe>.jsonl. NO API call without --go.
 """
 import argparse
 import collections
@@ -35,7 +35,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-sys.path[:0] = [str(ROOT / "me"), str(ROOT / "me2")]
+sys.path[:0] = [str(ROOT / "probes"), str(ROOT / "tool_probe")]
 DATA = HERE / "data"
 BASE = "http://34.147.229.55/33-model-equality/v1"
 
@@ -231,13 +231,13 @@ def load(target, probe, nmax):
     """{endpoint: [answer dicts]} for repeats < nmax ('tools' = the teammate's probe, same shape)."""
     rows = collections.defaultdict(dict)
     if probe == "tools":
-        import me2_tools as T
+        import tool_probe as T
         path = T.DATA / f"{target}_tools.jsonl"
         if not path.exists():
             return {}
         for r in map(json.loads, open(path)):
             if r["repeat"] < nmax:
-                rows[r["endpoint"]][r["repeat"]] = dict(enumerate(T.parse(r["response"])))   # as me2: INVALID counts
+                rows[r["endpoint"]][r["repeat"]] = dict(enumerate(T.parse(r["response"])))   # as tool_probe.py: INVALID counts
     else:
         path = DATA / f"{target}_{probe}.jsonl"
         if not path.exists():
@@ -260,7 +260,7 @@ def stat(A, B):
 
 
 def pair_z(A, B, perms, rng):
-    import me_combine as C
+    import combine as C
     t, pool, nulls = stat(A, B), list(A) + list(B), []
     for _ in range(perms):
         rng.shuffle(pool); nulls.append(stat(pool[:len(A)], pool[len(A):]))
@@ -277,7 +277,7 @@ def zmatrix(eps, data, perms=300, seed=0):
 
 
 def analyze(a):
-    import me_combine as C
+    import combine as C
     truth_rows = list(csv.DictReader(open(ROOT / "practice_answers.csv")))
     model = {r["endpoint"]: r["model"] for r in truth_rows}
     truth = {r["endpoint"]: (r["family"], r["model"]) for r in truth_rows}

@@ -1,10 +1,10 @@
 #!/bin/bash
-# one-off setup on a JURECA login node (has internet): separate venv + model downloads, all under me4/ (no API calls)
+# one-off setup on a JURECA login node (has internet): separate venv + model downloads, all under reference_models/ (no API calls)
 set -e
 R="$(cd "$(dirname "$0")/.." && pwd)"
-mkdir -p $R/me4/hf
-cd $R/me4
-export HF_HOME=$R/me4/hf PIP_CACHE_DIR=$R/me4/pipcache
+mkdir -p $R/reference_models/hf
+cd $R/reference_models
+export HF_HOME=$R/reference_models/hf PIP_CACHE_DIR=$R/reference_models/pipcache
 echo "start $(date +%H:%M)"
 $R/.venv/bin/python -c "import sys; print(sys.version)"
 if [ ! -x venv/bin/python ]; then
@@ -18,5 +18,5 @@ echo "packages done $(date +%H:%M)"
 for m in Qwen/Qwen2.5-0.5B-Instruct Qwen/Qwen2.5-1.5B-Instruct Qwen/Qwen2.5-3B-Instruct; do
   venv/bin/python -c "from huggingface_hub import snapshot_download as s; p=s('$m', allow_patterns=['*.json','*.safetensors','*.txt','tokenizer*','merges.txt','vocab.json']); print('$m ->', p)"
 done
-du -sh $R/me4/hf
+du -sh $R/reference_models/hf
 echo "all done $(date +%H:%M)"

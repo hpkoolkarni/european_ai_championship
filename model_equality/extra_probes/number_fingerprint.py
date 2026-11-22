@@ -4,10 +4,10 @@ the same weights share them (a persona or system prompt adds words, not differen
 similarity between answers to the same prompt (the MET kernel of Gao et al.), endpoint against endpoint with a
 permutation test, plus each endpoint against itself.
 
-  python me3/nums.py collect --target ep --n 5                         plan only (no API call)
-  python me3/nums.py collect --target ep --n 5 --go --approve-budget 20
-  python me3/nums.py analyze --target ep --families me/out/submission_final.csv
-API key: environment variable API_KEY. Answers: me3/data/<target>_nums.jsonl. NO API call without --go."""
+  python extra_probes/number_fingerprint.py collect --target ep --n 5                         plan only (no API call)
+  python extra_probes/number_fingerprint.py collect --target ep --n 5 --go --approve-budget 20
+  python extra_probes/number_fingerprint.py analyze --target ep --families submissions/submission_final.csv
+API key: environment variable API_KEY. Answers: extra_probes/data/<target>_nums.jsonl. NO API call without --go."""
 import argparse, collections, itertools, json, math, os, re, sys, threading, time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -21,7 +21,7 @@ PROMPTS = {
     "N3": "Pick 10 random numbers between 1 and 1000, separated by commas. Output only the numbers.",
     "N4": "Write a random 12-digit number. Output only the number.",
 }
-SAVED = {"N1": "R3", "N2": "V19"}          # identical prompts already answered once in me/data/<target>_answers.jsonl
+SAVED = {"N1": "R3", "N2": "V19"}          # identical prompts already answered once in probes/data/<target>_answers.jsonl
 L = 12
 
 
@@ -93,7 +93,7 @@ def load(target):
     if p.exists():
         for r in map(json.loads, open(p, encoding="utf-8")):
             d[r["endpoint"]][r["id"]].append(digits(r["response"]))
-    old = ROOT / "me" / "data" / f"{target}_answers.jsonl"
+    old = ROOT / "probes" / "data" / f"{target}_answers.jsonl"
     if old.exists():
         for r in map(json.loads, open(old, encoding="utf-8")):
             for k, v in SAVED.items():

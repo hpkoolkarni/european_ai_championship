@@ -6,16 +6,16 @@ different base models are comparable:
   vend_eq  : same self-described maker (0/1)           self_d : |difference in answer consistency (G prompts)|
 Logistic regression (L2), validated on practice by leaving one endpoint out at a time."""
 import sys, re, csv, math, random, itertools, collections, numpy as np
-sys.path[:0] = ["data/me", "data/me2"]
-import me_combine as C, me2_tools as T
+sys.path[:0] = ["data/probes", "data/tool_probe"]
+import combine as C, tool_probe as T
 
 
 def features(D, target, fams, ntool):
-    sys.modules.pop("me2_tools", None)
+    sys.modules.pop("tool_probe", None)
     rows = [r for r in C.rows_of(target)] if D == "data" else None
     import json
-    rows = [json.loads(l) for l in open(f"{D}/me/data/{target}_answers.jsonl", encoding="utf-8")]
-    trrows = [json.loads(l) for l in open(f"{D}/me2/data/{target}_tools.jsonl")]
+    rows = [json.loads(l) for l in open(f"{D}/probes/data/{target}_answers.jsonl", encoding="utf-8")]
+    trrows = [json.loads(l) for l in open(f"{D}/tool_probe/data/{target}_tools.jsonl")]
     tr = collections.defaultdict(list)
     for r in trrows:
         if r["repeat"] < ntool:
@@ -84,7 +84,7 @@ for th in (0.3, 0.5):
 print("  top practice pairs by held-out probability: " + ", ".join(
     f"{keys[i][0][-2:]}-{keys[i][1][-2:]} {pr[i]:.2f} ({truth[keys[i][0]]}/{truth[keys[i][1]]})" for i in np.argsort(-pr)[:8]))
 # scored
-fam = {l.split(",")[0]: l.split(",")[1] for l in open("eprun/me/out/submission_combined.csv").read().split()[1:]}
+fam = {l.split(",")[0]: l.split(",")[1] for l in open("eprun/submissions/submission_combined.csv").read().split()[1:]}
 fams = {f: sorted(e for e in fam if fam[e] == f) for f in "ABC"}
 S = features("eprun", "ep", fams, 40)
 sk = list(S); sp = pred(w, np.array([S[k] for k in sk]))

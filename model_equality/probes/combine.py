@@ -9,15 +9,15 @@
   L        : paired reply-length test on the free-length short prompts (ids matching --len-probes, pre-set F/R/V):
              per prompt, mean log(1 + chars) of A's answers minus B's; statistic = (mean over prompts)^2; null = A/B
              labels shuffled within each prompt
-  U        : the tool/echo probe of me2/me2_tools.py (first --tools-n answers per endpoint)
-  K        : optional (--with-k): the knowledge test of me_analyze.py (--stat confident, channel K)
+  U        : the tool/echo probe of tool_probe/tool_probe.py (first --tools-n answers per endpoint)
+  K        : optional (--with-k): the knowledge test of analyze.py (--stat confident, channel K)
 A test is used only if its pair z reproduce across two random halves of the data (MIN_RELIABILITY, truth-free).
 Pair z of the used channels is combined as sum / sqrt(k). Same model = average-linkage group INSIDE one family,
 distance max(z, 0), cut PRESET["cut"]. Everything in PRESET was fixed before the new V prompts were answered.
 
-  practice (pre-set check + practice score):   python me/me_combine.py --target ref
-  out-of-sample check on the new prompts only:  python me/me_combine.py --target ref --len-probes 'V\\d+'
-  scored endpoints (writes out/submission_combined.csv):  python me/me_combine.py --target ep
+  practice (pre-set check + practice score):   python probes/combine.py --target ref
+  out-of-sample check on the new prompts only:  python probes/combine.py --target ref --len-probes 'V\\d+'
+  scored endpoints (writes submissions/submission_combined.csv):  python probes/combine.py --target ep
   truth-free checks on a target's own answers (add to any of the above):  --diagnose [--diag-splits 10]
 """
 import argparse
@@ -39,8 +39,8 @@ except ImportError:                                                # falls back 
     _stats = None
 
 HERE = Path(__file__).resolve().parent
-sys.path[:0] = [str(HERE), str(HERE.parent / "me2")]
-import me_analyze as A                                             # noqa: E402
+sys.path[:0] = [str(HERE), str(HERE.parent / "tool_probe")]
+import analyze as A                                             # noqa: E402
 
 # fixed 22 Nov 2026 before the V answers exist. tools_n = 10: with calibrated z the practice result is the same for
 # 10, 15 and 29 tool answers (score 0.445), while more tool answers only raise the same-model pairs' worst z (1.4 at
@@ -190,7 +190,7 @@ def channel_L(eps, rows, pat, pairs, B=2000):
 
 
 def tools_pair_z(T, xa, xb, perms, rng):
-    """The teammate's statistic (me2_tools.stat) and permutation null, with a calibrated z (calib_z)."""
+    """The teammate's statistic (tool_probe.stat) and permutation null, with a calibrated z (calib_z)."""
     t, pool, nulls = T.stat(xa, xb), list(xa) + list(xb), []
     for _ in range(perms):
         rng.shuffle(pool); nulls.append(T.stat(pool[:len(xa)], pool[len(xa):]))
@@ -201,7 +201,7 @@ class ShapeStat:
     """Temperature-robust variant of the tool statistic (channel S). Per item, the log choice frequencies (+0.5
     smoothing, unreadable answers left out) are centred over the options; a temperature change multiplies these
     centred log-probabilities by one constant, so 1 - correlation of the two endpoints' concatenated vectors does not
-    move with temperature, while a different preference ORDER (other weights) does. Same interface as me2_tools."""
+    move with temperature, while a different preference ORDER (other weights) does. Same interface as tool_probe."""
 
     def __init__(self, T):
         self.ITEMS = T.ITEMS
@@ -222,7 +222,7 @@ class ShapeStat:
 
 def channel_U(eps, target, n, pairs, perms=500, shape=False):
     try:
-        import me2_tools as T
+        import tool_probe as T
     except ImportError:
         return None, {}
     T0, T = T, (ShapeStat(T) if shape else T)
@@ -379,7 +379,7 @@ def diagnose(eps, chans, Z, fam, pairs, per, a, splits, halves, kept, rows):
     print(f"\nDIAGNOSTICS on {a.target}'s own answers (no true labels used; {splits} random splits)")
     T = tr = None
     if "U" in chans or "S" in chans:
-        import me2_tools as T
+        import tool_probe as T
         tr = T.load(a.target, a.tools_n)
 
     # 1. calibration
@@ -614,7 +614,7 @@ def main():
     # reliability gate (truth-free): a test counts only if its pair z reproduce across two halves of the data
     T = tr = None
     if "U" in chans or "S" in chans:
-        import me2_tools as T
+        import tool_probe as T
         tr = T.load(a.target, a.tools_n)
     halves = split_halves(eps, list(chans), per, tr, T, allpairs, a.diag_splits)
     rel = {c: half_reliability(halves[c], allpairs) for c in chans if c in halves}
@@ -663,7 +663,7 @@ def main():
                     key=lambda t: abs(t[2] - a.cut))
     print(f"pairs within {ROUND2_MARGIN} of the cut ({len(unsure)}): " +
           ", ".join(f"{x[-2:]}-{y[-2:]} {z}" for x, y, z in unsure[:20]))
-    A.write(labels, A.OUT / "submission_combined.csv")
+    A.SUBMISSIONS.mkdir(exist_ok=True); A.write(labels, A.SUBMISSIONS / "submission_combined.csv")
     if "L" in kept:
         round2_plan(unsure, a.round2_budget)
     else:
@@ -684,7 +684,7 @@ def round2_plan(unsure, budget):
     path.write_text(json.dumps(plan, indent=1))
     if eps:
         print(f"\nSTAGE 2 plan: {len(eps)} endpoints x {budget} extra answers -> {path}\n  run:  .venv/bin/python -u "
-              f"me/me_collect.py --target ep --plan {path.relative_to(HERE.parent)} --extra-repeats 1 --go "
+              f"probes/collect.py --target ep --plan {path.relative_to(HERE.parent)} --extra-repeats 1 --go "
               f"--approve-budget {budget}")
     else:
         print("\nSTAGE 2: no pair is near the cut; nothing more to collect")

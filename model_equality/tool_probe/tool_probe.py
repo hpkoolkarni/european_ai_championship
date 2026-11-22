@@ -10,10 +10,10 @@ Changes for this API:
   * ITEMS items per request (more choices per query); the option order is shuffled with a fixed seed per repeat,
     identical for every endpoint, so any difference comes from the model, never from us.
 
-  python me2_tools.py collect --target ref --n 30 --go                      practice (free)
-  python me2_tools.py collect --target ep  --n 40 --go --approve-budget 40  scored (refuses above the budget)
-  python me2_tools.py analyze --target ref [--n 9]                          pair tests, clusters, practice MCC
-  python me2_tools.py analyze --target ep                                   writes submission_tools.csv
+  python tool_probe.py collect --target ref --n 30 --go                      practice (free)
+  python tool_probe.py collect --target ep  --n 40 --go --approve-budget 40  scored (refuses above the budget)
+  python tool_probe.py analyze --target ref [--n 9]                          pair tests, clusters, practice MCC
+  python tool_probe.py analyze --target ep                                   writes submission_tools.csv
 Without --go nothing is sent. API key: environment variable API_KEY. Answers: data/<target>_tools.jsonl
 """
 import argparse, collections, csv, itertools, json, math, os, random, re, sys, threading, time

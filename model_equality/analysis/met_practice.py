@@ -2,7 +2,7 @@
 disguised copies? Practice answers only, no API."""
 import sys, json, csv, collections, itertools, numpy as np
 D = sys.argv[1]; L = int(sys.argv[2]) if len(sys.argv) > 2 else 50
-rows = [json.loads(l) for l in open(D + "/me/data/ref_answers.jsonl", encoding="utf-8")]
+rows = [json.loads(l) for l in open(D + "/probes/data/ref_answers.jsonl", encoding="utf-8")]
 truth = {r["endpoint"]: r["model"] for r in csv.DictReader(open(D + "/practice_answers.csv"))}
 eps = [f"ref-{i:02d}" for i in range(1, 10)]; S = [e for e in eps if truth[e] == "S"]
 def enc(t):
