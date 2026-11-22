@@ -34,7 +34,7 @@
 
 ep-08 (persona "made by Anthropic") was in A by writing style, but its answers fit Qwen2.5-1.5B and not 3B; moved to B. A test with A and B merged dropped the score (0.05), confirming A ≠ B.
 
-**Models within a family: still the open problem.** Best public score **0.45** (`submission_ref.csv`): small groups of disguised copies, everything else its own model.
+**Models within a family: still the open problem.** Best public score **0.60** (`submission_v6.csv`): small groups of disguised copies plus the plain copy that matches the exact base best, everything else its own model.
 
 **Residual test against the exact base** (`reference_models/tools_fit.py`, `analysis/residual.py`). For each tool answer, the base model's probability of each of the 4 equivalent names given the endpoint's own text; per endpoint a temperature, then observed vs expected choice counts, with the family's shared offset removed and calibrated by 200 simulated answer sets (54 tool answers per endpoint):
 
@@ -63,6 +63,7 @@ ep-08 (persona "made by Anthropic") was in A by writing style, but its answers f
 | `submission_rule.csv` | fixed rule (`analysis/rule.py`, practice model MCC 0.72): A1 {01 02 12 17 24 25 33}, B1 {06 08 20 30 32}, C1 {11 31} | 0.40 |
 | `submission_v3.csv` | residual test: one base model per family (A 9, B 6, C 10 endpoints), off-base endpoints separate | 0.10 |
 | `submission_v4.csv` | `submission_ref` with A1 and A2 merged into {02, 18, 23, 24, 33}, 01 separate | 0.20 |
+| **`submission_v6.csv`** | `submission_ref` plus ep-32 in B1 {08, 20, 30, 32}: the B endpoint closest to the exact base in the residual test (z 1.0, sharpest temperature), i.e. the likely plain copy; ep-28 was rejected (it does not fit B1's shared model: 88 extra nats against about 20 for 07, 26 or 32) | **0.60** |
 
 ## Methods tried
 
